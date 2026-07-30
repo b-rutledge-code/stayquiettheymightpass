@@ -1,0 +1,13 @@
+version=1
+id=
+title=Stay Quiet, They Might Pass
+description=A distant gunshot cracks. Somewhere out there, the dead start moving toward it.
+description=
+description=Sometimes a whole group of them. Across the map. Past your house. Toward the noise.
+description=
+description=If you stay quiet, they might pass.
+description=
+description=[h2]Compatibility[/h2]
+description=Build 42.20+ · Singleplayer & dedicated server
+tags=Build 42;Immersion;Zombies;Multiplayer
+visibility=unlisted
