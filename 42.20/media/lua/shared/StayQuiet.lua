@@ -8,13 +8,16 @@ StayQuiet = StayQuiet or {}
 
 -- Fallbacks when SandboxVars.StayQuiet is missing (match sandbox defaults).
 StayQuiet.CHANCE_PERCENT = 5
+-- Thunder (AmbientStreamManager.handleThunderEvent) is nil-source radius 5000; keep rare vs meta gun.
+StayQuiet.THUNDER_RADIUS = 5000
+StayQuiet.THUNDER_CHANCE_PERCENT = 1
 StayQuiet.COOLDOWN_DAYS = 14
 StayQuiet.TRIGGER_RADIUS = 150
 StayQuiet.HORDE_SIZE_MIN = 20
 StayQuiet.HORDE_SIZE_MAX = 60
 -- Ring distance from player (tiles). Unloaded is fine — population manager handles off-map.
 StayQuiet.SPAWN_DIST_MIN = 80
-StayQuiet.SPAWN_DIST_MAX = 150
+StayQuiet.SPAWN_DIST_MAX = 125
 
 StayQuiet.ready = false
 StayQuiet.lastHordeTime = -999
@@ -70,12 +73,15 @@ local function getChancePercent()
     return getNumber("ChancePercent", StayQuiet.CHANCE_PERCENT)
 end
 
-local function getCooldownDays()
-    return getNumber("CooldownDays", StayQuiet.COOLDOWN_DAYS)
+local function getChancePercentForSound(radius)
+    if radius == StayQuiet.THUNDER_RADIUS then
+        return getNumber("ThunderChancePercent", StayQuiet.THUNDER_CHANCE_PERCENT)
+    end
+    return getChancePercent()
 end
 
-local function getTriggerRadius()
-    return getNumber("TriggerRadius", StayQuiet.TRIGGER_RADIUS)
+local function getCooldownDays()
+    return getNumber("CooldownDays", StayQuiet.COOLDOWN_DAYS)
 end
 
 local function isEnabled()
@@ -236,7 +242,7 @@ local function onWorldSound(x, y, z, radius, volume, source)
     if not isEnabled() then return end
     if source ~= nil then return end
 
-    local triggerRadius = getTriggerRadius()
+    local triggerRadius = StayQuiet.TRIGGER_RADIUS
     local logThis = StayQuiet.logTriggers and radius >= triggerRadius
     if not StayQuiet.debugMode then
         if radius < triggerRadius then
@@ -253,7 +259,7 @@ local function onWorldSound(x, y, z, radius, volume, source)
             end
             return
         end
-        local chance = getChancePercent()
+        local chance = getChancePercentForSound(radius)
         if ZombRand(100) >= chance then
             if logThis then
                 logTrigger(string.format(
@@ -266,8 +272,8 @@ local function onWorldSound(x, y, z, radius, volume, source)
     end
     if logThis then
         logTrigger(string.format(
-            "TRIGGER OnWorldSound at %d,%d,%d radius=%d vol=%d",
-            math.floor(x), math.floor(y), math.floor(z), radius, volume
+            "TRIGGER OnWorldSound at %d,%d,%d radius=%d vol=%d chance=%d",
+            math.floor(x), math.floor(y), math.floor(z), radius, volume, getChancePercentForSound(radius)
         ))
     end
     local got = spawnHorde(x, y, z, "OnWorldSound")

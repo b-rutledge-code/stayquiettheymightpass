@@ -18,6 +18,16 @@ option StayQuiet.ChancePercent
     translation = StayQuiet_ChancePercent,
 }
 
+option StayQuiet.ThunderChancePercent
+{
+    type = integer,
+    min = 0,
+    max = 10,
+    default = 1,
+    page = StayQuiet,
+    translation = StayQuiet_ThunderChancePercent,
+}
+
 option StayQuiet.CooldownDays
 {
     type = double,
@@ -28,21 +38,11 @@ option StayQuiet.CooldownDays
     translation = StayQuiet_CooldownDays,
 }
 
-option StayQuiet.TriggerRadius
-{
-    type = integer,
-    min = 50,
-    max = 1000,
-    default = 150,
-    page = StayQuiet,
-    translation = StayQuiet_TriggerRadius,
-}
-
 option StayQuiet.HordeSizeMin
 {
     type = integer,
     min = 1,
-    max = 200,
+    max = 100,
     default = 20,
     page = StayQuiet,
     translation = StayQuiet_HordeSizeMin,
@@ -52,7 +52,7 @@ option StayQuiet.HordeSizeMax
 {
     type = integer,
     min = 1,
-    max = 200,
+    max = 100,
     default = 60,
     page = StayQuiet,
     translation = StayQuiet_HordeSizeMax,
@@ -62,7 +62,7 @@ option StayQuiet.SpawnDistMin
 {
     type = integer,
     min = 20,
-    max = 500,
+    max = 125,
     default = 80,
     page = StayQuiet,
     translation = StayQuiet_SpawnDistMin,
@@ -72,8 +72,8 @@ option StayQuiet.SpawnDistMax
 {
     type = integer,
     min = 20,
-    max = 500,
-    default = 150,
+    max = 125,
+    default = 125,
     page = StayQuiet,
     translation = StayQuiet_SpawnDistMax,
 }
