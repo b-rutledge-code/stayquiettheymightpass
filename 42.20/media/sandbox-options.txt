@@ -1,0 +1,79 @@
+VERSION = 1,
+
+option StayQuiet.Enabled
+{
+    type = boolean,
+    default = true,
+    page = StayQuiet,
+    translation = StayQuiet_Enabled,
+}
+
+option StayQuiet.ChancePercent
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 5,
+    page = StayQuiet,
+    translation = StayQuiet_ChancePercent,
+}
+
+option StayQuiet.CooldownDays
+{
+    type = double,
+    min = 0,
+    max = 30,
+    default = 14,
+    page = StayQuiet,
+    translation = StayQuiet_CooldownDays,
+}
+
+option StayQuiet.TriggerRadius
+{
+    type = integer,
+    min = 50,
+    max = 1000,
+    default = 150,
+    page = StayQuiet,
+    translation = StayQuiet_TriggerRadius,
+}
+
+option StayQuiet.HordeSizeMin
+{
+    type = integer,
+    min = 1,
+    max = 200,
+    default = 20,
+    page = StayQuiet,
+    translation = StayQuiet_HordeSizeMin,
+}
+
+option StayQuiet.HordeSizeMax
+{
+    type = integer,
+    min = 1,
+    max = 200,
+    default = 60,
+    page = StayQuiet,
+    translation = StayQuiet_HordeSizeMax,
+}
+
+option StayQuiet.SpawnDistMin
+{
+    type = integer,
+    min = 20,
+    max = 500,
+    default = 80,
+    page = StayQuiet,
+    translation = StayQuiet_SpawnDistMin,
+}
+
+option StayQuiet.SpawnDistMax
+{
+    type = integer,
+    min = 20,
+    max = 500,
+    default = 150,
+    page = StayQuiet,
+    translation = StayQuiet_SpawnDistMax,
+}

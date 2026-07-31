@@ -1,0 +1,27 @@
+{
+    "Sandbox_StayQuiet": "Stay Quiet",
+
+    "Sandbox_StayQuiet_Enabled": "Enabled",
+    "Sandbox_StayQuiet_Enabled_tooltip": "When off, Stay Quiet never spawns hordes from distant sounds.",
+
+    "Sandbox_StayQuiet_ChancePercent": "Chance %",
+    "Sandbox_StayQuiet_ChancePercent_tooltip": "Percent chance a qualifying distant sound triggers a Stay Quiet horde.",
+
+    "Sandbox_StayQuiet_CooldownDays": "Cooldown (days)",
+    "Sandbox_StayQuiet_CooldownDays_tooltip": "Minimum days between Stay Quiet hordes. Distant meta gun events are roughly every few days; raise this to force more spacing.",
+
+    "Sandbox_StayQuiet_TriggerRadius": "Trigger radius",
+    "Sandbox_StayQuiet_TriggerRadius_tooltip": "World sounds smaller than this radius are ignored. Larger radius means farther / bigger noises.",
+
+    "Sandbox_StayQuiet_HordeSizeMin": "Horde size (min)",
+    "Sandbox_StayQuiet_HordeSizeMin_tooltip": "Minimum zombies requested for a Stay Quiet horde. Actual size is rolled between min and max.",
+
+    "Sandbox_StayQuiet_HordeSizeMax": "Horde size (max)",
+    "Sandbox_StayQuiet_HordeSizeMax_tooltip": "Maximum zombies requested for a Stay Quiet horde. Actual size is rolled between min and max.",
+
+    "Sandbox_StayQuiet_SpawnDistMin": "Spawn distance (min)",
+    "Sandbox_StayQuiet_SpawnDistMin_tooltip": "Minimum tiles from the nearest player to the spawn ring. Rolled between min and max.",
+
+    "Sandbox_StayQuiet_SpawnDistMax": "Spawn distance (max)",
+    "Sandbox_StayQuiet_SpawnDistMax_tooltip": "Maximum tiles from the nearest player to the spawn ring. Rolled between min and max."
+}

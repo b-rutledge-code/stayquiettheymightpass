@@ -2,16 +2,14 @@
 -- Distant/anonymous world sounds (e.g. meta gun): chance to spawn a population horde on a ring
 -- around the nearest player, marching toward the noise via createHordeFromTo.
 -- Works in singleplayer and MP: run when isServer() or not isClient() (SP + dedicated server).
+-- Tunables: SandboxVars.StayQuiet (see media/sandbox-options.txt).
 
 StayQuiet = StayQuiet or {}
 
--- Config: all ranges use MIN/MAX; value is random in [MIN, MAX] when used. Set MIN=MAX for fixed behavior.
-StayQuiet.MIN_RADIUS_MIN = 150
-StayQuiet.MIN_RADIUS_MAX = 250
-StayQuiet.CHANCE_PERCENT_MIN = 2
-StayQuiet.CHANCE_PERCENT_MAX = 10
-StayQuiet.COOLDOWN_HOURS_MIN = 0.5
-StayQuiet.COOLDOWN_HOURS_MAX = 1.5
+-- Fallbacks when SandboxVars.StayQuiet is missing (match sandbox defaults).
+StayQuiet.CHANCE_PERCENT = 5
+StayQuiet.COOLDOWN_DAYS = 14
+StayQuiet.TRIGGER_RADIUS = 150
 StayQuiet.HORDE_SIZE_MIN = 20
 StayQuiet.HORDE_SIZE_MAX = 60
 -- Ring distance from player (tiles). Unloaded is fine — population manager handles off-map.
@@ -20,11 +18,11 @@ StayQuiet.SPAWN_DIST_MAX = 150
 
 StayQuiet.ready = false
 StayQuiet.lastHordeTime = -999
-StayQuiet.nextCooldownHours = 0.75
+StayQuiet.nextCooldownHours = StayQuiet.COOLDOWN_DAYS * 24
 
 -- When true: log each createHordeFromTo (size, spawn, target, distances).
 StayQuiet.logSpawns = true
--- When true: log OnWorldSound checks (skip reasons + trigger) for nil-source sounds with radius >= MIN_RADIUS_MIN.
+-- When true: log OnWorldSound checks (skip reasons + trigger) for nil-source sounds with radius >= trigger.
 StayQuiet.logTriggers = true
 -- Debug: set true to test. Press G. OnKeyPressed is client-only; MP uses sendClientCommand to server.
 StayQuiet.debugMode = false
@@ -38,9 +36,50 @@ local function rollInt(minVal, maxVal)
     return minVal + ZombRand(maxVal - minVal + 1)
 end
 
-local function rollFloat(minVal, maxVal)
-    if maxVal <= minVal then return minVal end
-    return minVal + (maxVal - minVal) * ZombRand(10001) / 10000
+local function getSandbox()
+    return SandboxVars and SandboxVars.StayQuiet
+end
+
+local function getBool(key, fallback)
+    local sv = getSandbox()
+    if sv and sv[key] ~= nil then
+        return sv[key] and true or false
+    end
+    return fallback
+end
+
+local function getNumber(key, fallback)
+    local sv = getSandbox()
+    if sv and sv[key] ~= nil then
+        local n = tonumber(sv[key])
+        if n ~= nil then return n end
+    end
+    return fallback
+end
+
+local function getRange(minKey, maxKey, fallbackMin, fallbackMax)
+    local minVal = getNumber(minKey, fallbackMin)
+    local maxVal = getNumber(maxKey, fallbackMax)
+    if maxVal < minVal then
+        minVal, maxVal = maxVal, minVal
+    end
+    return minVal, maxVal
+end
+
+local function getChancePercent()
+    return getNumber("ChancePercent", StayQuiet.CHANCE_PERCENT)
+end
+
+local function getCooldownDays()
+    return getNumber("CooldownDays", StayQuiet.COOLDOWN_DAYS)
+end
+
+local function getTriggerRadius()
+    return getNumber("TriggerRadius", StayQuiet.TRIGGER_RADIUS)
+end
+
+local function isEnabled()
+    return getBool("Enabled", true)
 end
 
 local function debugKeyMatches(key)
@@ -143,14 +182,27 @@ local function spawnHorde(soundX, soundY, soundZ, reason)
         return 0
     end
 
+    local spawnDistMin, spawnDistMax = getRange(
+        "SpawnDistMin",
+        "SpawnDistMax",
+        StayQuiet.SPAWN_DIST_MIN,
+        StayQuiet.SPAWN_DIST_MAX
+    )
+    local hordeSizeMin, hordeSizeMax = getRange(
+        "HordeSizeMin",
+        "HordeSizeMax",
+        StayQuiet.HORDE_SIZE_MIN,
+        StayQuiet.HORDE_SIZE_MAX
+    )
+
     local playerX, playerY = player:getX(), player:getY()
     local angle = ZombRand(1000) / 1000.0 * 2 * math.pi
-    local distFromPlayer = rollInt(StayQuiet.SPAWN_DIST_MIN, StayQuiet.SPAWN_DIST_MAX)
+    local distFromPlayer = rollInt(spawnDistMin, spawnDistMax)
     local spawnX = playerX + distFromPlayer * math.cos(angle)
     local spawnY = playerY + distFromPlayer * math.sin(angle)
     local targetX = soundX
     local targetY = soundY
-    local hordeSize = rollInt(StayQuiet.HORDE_SIZE_MIN, StayQuiet.HORDE_SIZE_MAX)
+    local hordeSize = rollInt(hordeSizeMin, hordeSizeMax)
 
     createHordeFromTo(spawnX, spawnY, targetX, targetY, hordeSize)
 
@@ -159,8 +211,8 @@ local function spawnHorde(soundX, soundY, soundZ, reason)
         string.format(
             "HORDE createHordeFromTo size=%d allowed=%d..%d",
             hordeSize,
-            StayQuiet.HORDE_SIZE_MIN,
-            StayQuiet.HORDE_SIZE_MAX
+            hordeSizeMin,
+            hordeSizeMax
         ),
         string.format(
             "SPAWN reason=%s spawn=%.0f,%.0f target=%.0f,%.0f,%.0f distFromPlayer=%d distToNoise=%.0f",
@@ -181,17 +233,13 @@ end
 local function onWorldSound(x, y, z, radius, volume, source)
     if not isServerOrSP() then return end
     if not StayQuiet.ready then return end
+    if not isEnabled() then return end
     if source ~= nil then return end
-    local logThis = StayQuiet.logTriggers and radius >= StayQuiet.MIN_RADIUS_MIN
+
+    local triggerRadius = getTriggerRadius()
+    local logThis = StayQuiet.logTriggers and radius >= triggerRadius
     if not StayQuiet.debugMode then
-        local minRadius = rollInt(StayQuiet.MIN_RADIUS_MIN, StayQuiet.MIN_RADIUS_MAX)
-        if radius < minRadius then
-            if logThis then
-                logTrigger(string.format(
-                    "SKIP radius=%d need>=%d vol=%d at %d,%d,%d",
-                    radius, minRadius, volume, math.floor(x), math.floor(y), math.floor(z)
-                ))
-            end
+        if radius < triggerRadius then
             return
         end
         local now = getGameTimeHours()
@@ -205,7 +253,7 @@ local function onWorldSound(x, y, z, radius, volume, source)
             end
             return
         end
-        local chance = rollInt(StayQuiet.CHANCE_PERCENT_MIN, StayQuiet.CHANCE_PERCENT_MAX)
+        local chance = getChancePercent()
         if ZombRand(100) >= chance then
             if logThis then
                 logTrigger(string.format(
@@ -216,7 +264,7 @@ local function onWorldSound(x, y, z, radius, volume, source)
             return
         end
     end
-    if logThis or StayQuiet.logTriggers then
+    if logThis then
         logTrigger(string.format(
             "TRIGGER OnWorldSound at %d,%d,%d radius=%d vol=%d",
             math.floor(x), math.floor(y), math.floor(z), radius, volume
@@ -225,7 +273,7 @@ local function onWorldSound(x, y, z, radius, volume, source)
     local got = spawnHorde(x, y, z, "OnWorldSound")
     if got and got > 0 then
         StayQuiet.lastHordeTime = getGameTimeHours()
-        StayQuiet.nextCooldownHours = rollFloat(StayQuiet.COOLDOWN_HOURS_MIN, StayQuiet.COOLDOWN_HOURS_MAX)
+        StayQuiet.nextCooldownHours = getCooldownDays() * 24
     elseif StayQuiet.logTriggers then
         logTrigger("TRIGGER spawn failed got=0 (cooldown not applied)")
     end
@@ -233,6 +281,7 @@ end
 
 local function onGameStart()
     StayQuiet.ready = true
+    StayQuiet.nextCooldownHours = getCooldownDays() * 24
     logTrigger("ready (logTriggers=" .. tostring(StayQuiet.logTriggers) .. " debugMode=" .. tostring(StayQuiet.debugMode) .. " createHordeFromTo)")
 end
 
