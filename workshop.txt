@@ -1,11 +1,14 @@
 version=1
 id=3774256641
 title=Stay Quiet, They Might Pass
-description=A distant gunshot cracks. Somewhere out there, the dead start moving toward it.
+description=They heard something. They're coming.
 description=
-description=Sometimes a whole group of them. Across the map. Past your house. Toward the noise.
+description=Toward the noise.
 description=
 description=If you stay quiet, they might pass.
+description=
+description=[h2]Description[/h2]
+description=Distant noises like gunshots or thunder may spawn a horde (20-60 zombies) that moves toward the sound's origin.
 description=
 description=[h2]Compatibility[/h2]
 description=Build 42.20+ · Singleplayer & dedicated server

@@ -1,7 +1,7 @@
 name=Stay Quiet, They Might Pass
 id=StayQuietTheyMightPass
 description=When a distant gunshot (or similar) happens, a group of zombies may spawn and march toward it. If you stay quiet, they might pass.
-modversion=1.1.0
+modversion=1.1.1
 versionMin=42.20
 poster=poster.png
 icon=poster.png
